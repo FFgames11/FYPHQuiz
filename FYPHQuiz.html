@@ -1,0 +1,928 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --c-vl: #178BCA;
+  --c-sl: #E24B4A;
+  --c-sil: #639922;
+  --c-bday: #BA7517;
+  --c-vl-bg: #E6F1FB;
+  --c-sl-bg: #FCEBEB;
+  --c-sil-bg: #EAF3DE;
+  --c-bday-bg: #FAEEDA;
+  --gold: #FFD700;
+  --dark-bg: #0a0a12;
+  --panel-bg: rgba(255,255,255,0.04);
+  --border-glow: rgba(255,255,255,0.1);
+}
+
+.game-wrap {
+  font-family: 'Exo 2', sans-serif;
+  background: linear-gradient(135deg, #0a0a18 0%, #0d1020 50%, #0a0a18 100%);
+  padding: 2rem 1.5rem;
+  min-height: 100vh;
+  color: #e0e0e0;
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(100,120,255,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(100,120,255,0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+.hud-title {
+  font-family: 'Orbitron', monospace;
+  text-align: center;
+  margin-bottom: 0.25rem;
+}
+
+.hud-title .main-title {
+  font-size: clamp(18px, 4vw, 28px);
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.hud-title .sub-title {
+  font-size: 11px;
+  color: #8899aa;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.xp-bar-wrap {
+  max-width: 500px;
+  margin: 1rem auto;
+  background: rgba(255,255,255,0.06);
+  border-radius: 20px;
+  border: 0.5px solid rgba(255,255,255,0.1);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.xp-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  color: #8899aa;
+  white-space: nowrap;
+}
+
+.xp-track {
+  flex: 1;
+  height: 8px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.xp-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #4A90E2, #7B5EA7);
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  width: 0%;
+}
+
+.xp-count {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  color: #FFD700;
+  min-width: 60px;
+  text-align: right;
+}
+
+.deck-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 1.5rem 0;
+}
+
+.leave-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s, background 0.2s;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.leave-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.08);
+}
+
+.leave-card.active {
+  transform: translateY(-4px);
+}
+
+.leave-card.vl.active { border-color: #378ADD; background: rgba(55,138,221,0.12); }
+.leave-card.sl.active { border-color: #E24B4A; background: rgba(226,75,74,0.12); }
+.leave-card.sil.active { border-color: #639922; background: rgba(99,153,34,0.12); }
+.leave-card.bday.active { border-color: #BA7517; background: rgba(186,117,23,0.12); }
+
+.card-icon {
+  font-size: 28px;
+  margin-bottom: 6px;
+  line-height: 1;
+}
+
+.card-type {
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.card-type.vl { color: #378ADD; }
+.card-type.sl { color: #E24B4A; }
+.card-type.sil { color: #639922; }
+.card-type.bday { color: #BA7517; }
+
+.card-days {
+  font-family: 'Orbitron', monospace;
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+}
+
+.card-days-label {
+  font-size: 10px;
+  color: #8899aa;
+  margin-top: 2px;
+}
+
+.card-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.badge-unpaid { background: rgba(136,135,128,0.3); color: #B4B2A9; }
+.badge-paid { background: rgba(99,153,34,0.25); color: #97C459; }
+
+.arena {
+  background: rgba(255,255,255,0.03);
+  border: 0.5px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+}
+
+.arena-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.arena-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #8899aa;
+  text-transform: uppercase;
+}
+
+.combo-counter {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  color: #FFD700;
+  background: rgba(255,215,0,0.1);
+  border: 0.5px solid rgba(255,215,0,0.3);
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.question-box {
+  margin-bottom: 1.25rem;
+}
+
+.question-num {
+  font-size: 10px;
+  color: #8899aa;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.question-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: #e8e8ff;
+  line-height: 1.5;
+}
+
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.opt-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #c8c8d8;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s;
+  line-height: 1.3;
+}
+
+.opt-btn:hover:not(:disabled) {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.25);
+  color: #fff;
+  transform: scale(1.02);
+}
+
+.opt-btn.correct {
+  background: rgba(99,153,34,0.2);
+  border-color: #639922;
+  color: #97C459;
+  font-weight: 600;
+}
+
+.opt-btn.wrong {
+  background: rgba(226,75,74,0.15);
+  border-color: #E24B4A;
+  color: #F09595;
+}
+
+.opt-btn:disabled { cursor: default; }
+
+.feedback-box {
+  min-height: 48px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.feedback-box.show { opacity: 1; }
+.feedback-box.correct-fb { background: rgba(99,153,34,0.15); border: 0.5px solid rgba(99,153,34,0.4); color: #C0DD97; }
+.feedback-box.wrong-fb { background: rgba(226,75,74,0.1); border: 0.5px solid rgba(226,75,74,0.3); color: #F7C1C1; }
+
+.feedback-box .fb-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.nav-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-dots {
+  display: flex;
+  gap: 5px;
+}
+
+.dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  transition: background 0.3s;
+}
+.dot.done-correct { background: #639922; }
+.dot.done-wrong { background: #E24B4A; }
+.dot.current { background: #378ADD; box-shadow: 0 0 6px #378ADD; }
+
+.nav-btn {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  padding: 7px 16px;
+  color: #c8c8d8;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+
+.nav-btn:hover { background: rgba(255,255,255,0.14); color: #fff; }
+.nav-btn:disabled { opacity: 0.3; cursor: default; }
+.nav-btn.primary { background: rgba(55,138,221,0.2); border-color: #378ADD; color: #85B7EB; }
+.nav-btn.primary:hover { background: rgba(55,138,221,0.35); }
+
+.score-panel {
+  background: rgba(255,215,0,0.05);
+  border: 1px solid rgba(255,215,0,0.2);
+  border-radius: 14px;
+  padding: 1.5rem;
+  text-align: center;
+  margin: 1rem 0;
+  display: none;
+}
+
+.score-panel.show { display: block; }
+
+.score-trophy {
+  font-size: 42px;
+  margin-bottom: 0.5rem;
+}
+
+.score-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 14px;
+  color: #FFD700;
+  letter-spacing: 2px;
+  margin-bottom: 0.5rem;
+}
+
+.score-num {
+  font-family: 'Orbitron', monospace;
+  font-size: 36px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.score-rank {
+  font-size: 13px;
+  color: #8899aa;
+  margin-top: 6px;
+  margin-bottom: 1rem;
+}
+
+.rank-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 1rem;
+}
+
+.rank-s { background: rgba(255,215,0,0.2); color: #FFD700; border: 1px solid rgba(255,215,0,0.4); }
+.rank-a { background: rgba(55,138,221,0.2); color: #85B7EB; border: 1px solid rgba(55,138,221,0.4); }
+.rank-b { background: rgba(99,153,34,0.2); color: #97C459; border: 1px solid rgba(99,153,34,0.4); }
+.rank-c { background: rgba(186,117,23,0.2); color: #EF9F27; border: 1px solid rgba(186,117,23,0.4); }
+
+.quick-ref {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin: 1rem 0;
+}
+
+.ref-row {
+  background: rgba(255,255,255,0.03);
+  border: 0.5px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ref-label {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #8899aa;
+}
+
+.ref-value {
+  font-family: 'Orbitron', monospace;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ref-sub {
+  font-size: 11px;
+  color: #8899aa;
+}
+
+.section-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #8899aa;
+  text-transform: uppercase;
+  margin: 1.25rem 0 0.5rem;
+  padding-bottom: 6px;
+  border-bottom: 0.5px solid rgba(255,255,255,0.07);
+}
+
+.restart-btn {
+  background: rgba(55,138,221,0.15);
+  border: 1px solid rgba(55,138,221,0.4);
+  border-radius: 10px;
+  padding: 10px 24px;
+  color: #85B7EB;
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 0.5rem;
+}
+
+.restart-btn:hover { background: rgba(55,138,221,0.3); color: #fff; }
+
+.float-anim { animation: floatUp 0.5s ease-out forwards; }
+@keyframes floatUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.pulse { animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+.unlock-toast {
+  position: fixed;
+  top: 20px; right: 20px;
+  background: rgba(99,153,34,0.9);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s;
+  pointer-events: none;
+  z-index: 99;
+}
+.unlock-toast.show { opacity: 1; transform: translateY(0); }
+
+
+.info-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 8, 20, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.22s ease, visibility 0.22s ease;
+  z-index: 120;
+}
+
+.info-modal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.info-modal-panel {
+  width: min(560px, 100%);
+  background: linear-gradient(180deg, rgba(18,22,42,0.98) 0%, rgba(12,15,28,0.98) 100%);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 18px;
+  box-shadow: 0 18px 60px rgba(0,0,0,0.45);
+  padding: 1.25rem 1.25rem 1rem;
+  position: relative;
+}
+
+.info-modal-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #fff;
+  margin-bottom: 0.85rem;
+  padding-right: 44px;
+}
+
+.info-modal-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.info-modal-list li {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 10px 12px;
+  line-height: 1.5;
+  color: #d9deef;
+  font-size: 13px;
+}
+
+.info-modal-list strong {
+  color: #fff;
+}
+
+.info-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.07);
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.info-close:hover {
+  background: rgba(255,255,255,0.14);
+  transform: scale(1.05);
+}
+
+</style>
+
+<div class="game-wrap">
+  <div class="bg-grid"></div>
+
+  <div class="unlock-toast" id="toast">+ XP EARNED!</div>
+
+  <div class="hud-title float-anim">
+    <div class="main-title"> FYPH Leave Entitlement Quest</div>
+    <div class="sub-title">FYPH Employee Handbook · Leave Entitlements Trivia</div>
+  </div>
+
+  <div class="xp-bar-wrap">
+    <span class="xp-label">PLAYER XP</span>
+    <div class="xp-track"><div class="xp-fill" id="xpFill"></div></div>
+    <span class="xp-count" id="xpCount">0 / 700 XP</span>
+  </div>
+
+  <div class="section-label">&#x25B6; Leave Type Roster — Select to Inspect</div>
+
+  <div class="deck-grid" id="deckGrid">
+    <div class="leave-card vl active" onclick="selectCard('vl',this)">
+      <span class="card-badge badge-unpaid">UNPAID</span>
+      <div class="card-icon">&#x1F3D6;</div>
+      <div class="card-type vl">Vacation Leave</div>
+      <div class="card-days">15</div>
+      <div class="card-days-label">days / year</div>
+    </div>
+    <div class="leave-card sl" onclick="selectCard('sl',this)">
+      <span class="card-badge badge-unpaid">UNPAID</span>
+      <div class="card-icon">&#x1F912;</div>
+      <div class="card-type sl">Sick Leave</div>
+      <div class="card-days">15</div>
+      <div class="card-days-label">days / year</div>
+    </div>
+    <div class="leave-card sil" onclick="selectCard('sil',this)">
+      <span class="card-badge badge-paid">PAID</span>
+      <div class="card-icon">&#x2B50;</div>
+      <div class="card-type sil">Service Incentive</div>
+      <div class="card-days">7</div>
+      <div class="card-days-label">days / year</div>
+    </div>
+    <div class="leave-card bday" onclick="selectCard('bday',this)">
+      <span class="card-badge badge-paid">PAID</span>
+      <div class="card-icon">&#x1F382;</div>
+      <div class="card-type bday">Birthday Leave</div>
+      <div class="card-days">1</div>
+      <div class="card-days-label">day</div>
+    </div>
+  </div>
+
+  <div class="section-label">&#x1F3AE; Trivia Arena — Answer to Earn XP</div>
+
+  <div class="arena" id="arena">
+    <div class="arena-header">
+      <span class="arena-title">&#x26A1; Challenge Room</span>
+      <span class="combo-counter" id="comboDisplay">COMBO ×<span id="comboNum">0</span></span>
+    </div>
+
+    <div class="question-box" id="questionBox">
+      <div class="question-num" id="questionNum">QUESTION 1 OF 7</div>
+      <div class="question-text" id="questionText">Loading question...</div>
+    </div>
+
+    <div class="options-grid" id="optionsGrid"></div>
+
+    <div class="feedback-box" id="feedbackBox">
+      <div class="fb-title" id="fbTitle"></div>
+      <div id="fbText"></div>
+    </div>
+
+    <div class="nav-row">
+      <div class="progress-dots" id="progressDots"></div>
+      <div style="display:flex;gap:8px;">
+        <button class="nav-btn" id="prevBtn" onclick="prevQ()" disabled>&#x2190; Back</button>
+        <button class="nav-btn primary" id="nextBtn" onclick="nextQ()" disabled>Next &#x2192;</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="score-panel" id="scorePanel">
+    <div class="score-trophy" id="scoreTrophy">&#x1F3C6;</div>
+    <div class="score-title">Mission Complete</div>
+    <div class="score-num" id="scoreNum">0 / 700</div>
+    <div class="score-rank" id="scoreRank">Computing rank...</div>
+    <div class="rank-badge" id="rankBadge">—</div>
+    <br>
+    <button class="restart-btn" onclick="restartGame()">&#x21BA; REPLAY MISSION</button>
+  </div>
+
+</div>
+
+  <div class="info-modal" id="infoModal" onclick="handleModalBackdrop(event)">
+    <div class="info-modal-panel">
+      <button class="info-close" type="button" onclick="closeInfoModal()">×</button>
+      <div class="info-modal-title" id="infoModalTitle">Leave Information</div>
+      <ul class="info-modal-list" id="infoModalList"></ul>
+    </div>
+  </div>
+
+<script>
+const leaveInfo = {
+  vl: {
+    title: 'Vacation Leave (VL) - Notice Required',
+    items: [
+      '1 day - (24hrs notice) Submit form at least 24 hours before',
+      '2-3 days - (5 days notice) File 5 working days in advance',
+      '4-7 days - (1 week notice) File at least 1 week in advance',
+      '1 week+ - (1 month notice) File at least 1 month in advance'
+    ]
+  },
+  sl: {
+    title: 'Sick Leave (SL) - Notice Required',
+    items: [
+      '1 day - (2hrs notice) Submit form at least 2 hours before',
+      '2-3 days - (2 days notice) Medical Certificate required',
+      '4-6 days - (3 days notice) Medical Certificate required',
+      '1 week+ - (3 days notice) Medical Certificate + Doctor/Hospital Letter required'
+    ]
+  },
+  sil: {
+    title: 'Service Incentive',
+    items: [
+      'Annually - after 1year of service'
+    ]
+  },
+  bday: {
+    title: 'Birthday Leave',
+    items: [
+      'Annually - after 6months of service'
+    ]
+  }
+};
+
+const questions = [
+  {
+    q: "How many Vacation Leave (VL) days does FYPH grant per year?",
+    opts: ["15 days","10 days","7 days","30 days"],
+    ans: 0,
+    xp: 100,
+    explain: "VL = 15 days per year. Heads up — it's Unpaid Leave, so use it wisely, hero!"
+  },
+  {
+    q: "Which leave types are classified as PAID entitlements?",
+    opts: ["Vacation & Sick Leave","Sick & Birthday Leave","Service Incentive & Birthday Leave","All leave types"],
+    ans: 2,
+    xp: 100,
+    explain: "Service Incentive Leave (SIL) and Birthday Leave are the paid ones. VL and SL are both unpaid."
+  },
+  {
+    q: "After how many months of service does the Birthday Leave power-up unlock?",
+    opts: ["3 months","1 month","1 year","6 months"],
+    ans: 3,
+    xp: 100,
+    explain: "Birthday Leave unlocks after 6 months of service. One paid day, all yours!"
+  },
+  {
+    q: "The Service Incentive Leave (SIL) grants 7 paid days — but when does it activate?",
+    opts: ["After probation ends","After 6 months","After 1 year of service","From Day 1"],
+    ans: 2,
+    xp: 100,
+    explain: "SIL activates annually after 1 year of service. No year, no SIL!"
+  },
+  {
+    q: "You need 5 consecutive days off for a vacation. What is the required filing notice?",
+    opts: ["24 hours before","At least 1 week in advance","5 working days in advance","1 month in advance"],
+    ans: 1,
+    xp: 100,
+    explain: "For 2–3 days: 5 working days. For 4–7 days: 1 week. Since 5 days falls in 4–7, file at least 1 week in advance!"
+  },
+  {
+    q: "What is the ONLY valid channel to file ALL types of leave at FYPH?",
+    opts: ["Direct message to Leader","Verbal notification","FY Lark Leave Form","Email to HR Director"],
+    ans: 2,
+    xp: 100,
+    explain: "FY Lark Leave Form — ALL leave types must go through it. Verbal or informal notifications are NOT valid!"
+  },
+  {
+    q: "You're sick and need 1 day off. What is the minimum notice time required?",
+    opts: ["No notice needed","At least 2 hours before your shift","At least 24 hours before","Day-of notification is fine"],
+    ans: 1,
+    xp: 100,
+    explain: "For 1 sick day: notify at least 2 hours before your shift. For 2–3 days, 2 days' notice is needed."
+  }
+];
+
+let current = 0;
+let answered = new Array(questions.length).fill(null);
+let combo = 0;
+let totalXP = 0;
+const MAX_XP = questions.length * 100;
+
+function selectCard(type, el) {
+  document.querySelectorAll('.leave-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  openInfoModal(type);
+}
+
+function openInfoModal(type) {
+  const config = leaveInfo[type];
+  if (!config) return;
+  document.getElementById('infoModalTitle').textContent = config.title;
+  const list = document.getElementById('infoModalList');
+  list.innerHTML = config.items.map(item => `<li>${item}</li>`).join('');
+  document.getElementById('infoModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeInfoModal() {
+  document.getElementById('infoModal').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+function handleModalBackdrop(event) {
+  if (event.target.id === 'infoModal') closeInfoModal();
+}
+
+function renderQuestion() {
+  const q = questions[current];
+  document.getElementById('questionNum').textContent = `QUESTION ${current+1} OF ${questions.length}`;
+  document.getElementById('questionText').textContent = q.q;
+  const grid = document.getElementById('optionsGrid');
+  grid.innerHTML = '';
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.textContent = opt;
+    btn.onclick = () => handleAnswer(i);
+    if (answered[current] !== null) {
+      btn.disabled = true;
+      if (i === q.ans) btn.classList.add('correct');
+      else if (i === answered[current] && answered[current] !== q.ans) btn.classList.add('wrong');
+    }
+    grid.appendChild(btn);
+  });
+  renderFeedback();
+  renderDots();
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').disabled = answered[current] === null;
+  if (current === questions.length - 1 && answered.every(a => a !== null)) {
+    document.getElementById('nextBtn').textContent = 'Finish &#x2192;';
+    document.getElementById('nextBtn').innerHTML = 'Finish &#x2192;';
+  } else {
+    document.getElementById('nextBtn').textContent = 'Next →';
+  }
+}
+
+function handleAnswer(idx) {
+  if (answered[current] !== null) return;
+  answered[current] = idx;
+  const q = questions[current];
+  const correct = idx === q.ans;
+  if (correct) {
+    combo++;
+    const bonus = combo >= 3 ? 20 : combo >= 2 ? 10 : 0;
+    totalXP += q.xp + bonus;
+    showToast(`+${q.xp + bonus} XP${bonus > 0 ? ' COMBO BONUS!' : ''}`);
+  } else {
+    combo = 0;
+  }
+  document.getElementById('comboNum').textContent = combo;
+  updateXP();
+  renderQuestion();
+  document.getElementById('nextBtn').disabled = false;
+}
+
+function renderFeedback() {
+  const fb = document.getElementById('feedbackBox');
+  const title = document.getElementById('fbTitle');
+  const text = document.getElementById('fbText');
+  if (answered[current] === null) {
+    fb.className = 'feedback-box';
+    fb.style.minHeight = '0';
+    return;
+  }
+  fb.style.minHeight = '48px';
+  const correct = answered[current] === questions[current].ans;
+  fb.className = `feedback-box show ${correct ? 'correct-fb' : 'wrong-fb'}`;
+  title.textContent = correct ? '✓ CRITICAL HIT! +100 XP' : '✗ MISS! Better study your codex.';
+  text.textContent = questions[current].explain;
+}
+
+function renderDots() {
+  const dots = document.getElementById('progressDots');
+  dots.innerHTML = '';
+  questions.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    if (i === current) d.classList.add('current');
+    else if (answered[i] !== null) {
+      d.classList.add(answered[i] === questions[i].ans ? 'done-correct' : 'done-wrong');
+    }
+    dots.appendChild(d);
+  });
+}
+
+function nextQ() {
+  if (current < questions.length - 1) {
+    current++;
+    renderQuestion();
+  } else if (answered.every(a => a !== null)) {
+    showScore();
+  }
+}
+
+function prevQ() {
+  if (current > 0) { current--; renderQuestion(); }
+}
+
+function updateXP() {
+  const pct = Math.round((totalXP / MAX_XP) * 100);
+  document.getElementById('xpFill').style.width = pct + '%';
+  document.getElementById('xpCount').textContent = `${totalXP} / ${MAX_XP} XP`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function showScore() {
+  document.getElementById('arena').style.display = 'none';
+  const panel = document.getElementById('scorePanel');
+  panel.classList.add('show');
+  const score = answers => answers.filter((a,i) => a === questions[i].ans).length;
+  const correct = score(answered);
+  document.getElementById('scoreNum').textContent = `${totalXP} / ${MAX_XP} XP`;
+  let rank, rankClass, trophy, rankMsg;
+  if (correct === 7) { rank='S RANK'; rankClass='rank-s'; trophy='&#x1F947;'; rankMsg='Perfect Score — Leave Lore Master!'; }
+  else if (correct >= 6) { rank='A RANK'; rankClass='rank-a'; trophy='&#x1F948;'; rankMsg='Excellent! Almost flawless.'; }
+  else if (correct >= 4) { rank='B RANK'; rankClass='rank-b'; trophy='&#x1F949;'; rankMsg='Solid effort. Review the codex once more.'; }
+  else { rank='C RANK'; rankClass='rank-c'; trophy='&#x1F4DC;'; rankMsg='Revisit the handbook, adventurer.'; }
+  document.getElementById('scoreTrophy').innerHTML = trophy;
+  document.getElementById('scoreRank').textContent = `${correct}/7 correct — ${rankMsg}`;
+  document.getElementById('rankBadge').textContent = rank;
+  document.getElementById('rankBadge').className = `rank-badge ${rankClass}`;
+}
+
+function restartGame() {
+  current = 0;
+  answered = new Array(questions.length).fill(null);
+  combo = 0;
+  totalXP = 0;
+  updateXP();
+  document.getElementById('comboNum').textContent = '0';
+  document.getElementById('arena').style.display = 'block';
+  document.getElementById('scorePanel').classList.remove('show');
+  renderQuestion();
+}
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') closeInfoModal();
+});
+
+renderQuestion();
+updateXP();
+</script>
